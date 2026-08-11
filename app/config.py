@@ -9,6 +9,9 @@ GITHUB_REDIRECT_URI = "http://localhost:5000/callback"  # update for production
 SECRET_KEY = os.getenv("SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 
+# GitHub API token for reading PR files and posting review comments.
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
 # --- Analysis / linter configuration -------------------------------
 LINTER_TIMEOUT = int(os.getenv("LINTER_TIMEOUT", "120"))
 PYLINT_CMD = os.getenv("PYLINT_CMD") or None
