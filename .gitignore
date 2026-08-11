@@ -4,3 +4,8 @@ venv/
 
 
 *.pem
+checkstyle.jar
+spotbugs-dist/
+.code-review-agent.eslint.config.mjs
+__pycache__/
+*.pyc
