@@ -68,9 +68,10 @@ def review_pull_request(
     pr_number: int,
     head_sha: str,
     client: GitHubClient | None = None,
+    installation_id: int | str | None = None,
 ) -> AnalysisReport:
     """Analyze a PR's changed files and post a summary comment."""
-    client = client or GitHubClient()
+    client = client or GitHubClient(installation_id=installation_id)
     files = _changed_files(client.list_pr_files(owner, repo, pr_number))
     files = _supported_files(files)
 

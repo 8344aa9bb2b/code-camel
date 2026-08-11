@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 
@@ -17,11 +17,22 @@ class GitHubClientError(Exception):
 class GitHubClient:
     """Thin wrapper over the GitHub REST API for PR review."""
 
-    def __init__(self, token: str | None = None):
-        self._token = token or config.GITHUB_TOKEN
-        if not self._token:
+    def __init__(
+        self,
+        token: Optional[str] = None,
+        installation_id: Optional[int | str] = None,
+    ):
+        if token:
+            self._token = token
+        elif installation_id is not None:
+            from .github_app import installation_token
+
+            self._token = installation_token(installation_id)
+        elif config.GITHUB_TOKEN:
+            self._token = config.GITHUB_TOKEN
+        else:
             raise GitHubClientError(
-                "GITHUB_TOKEN is not set; add it to the environment."
+                "No GitHub credentials; set GITHUB_TOKEN or pass installation_id."
             )
         self._session = requests.Session()
         self._session.headers.update(

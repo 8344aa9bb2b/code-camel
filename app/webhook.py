@@ -33,16 +33,25 @@ def webhook():
         print(f"PR {action} in {repo}: #{pr['number']} - {pr['title']}")
 
         if action in ("opened", "synchronize", "reopened"):
+            installation_id = data.get("installation", {}).get("id")
             threading.Thread(
                 target=_run_review,
-                args=(owner, repo_name, pr["number"], pr["head"]["sha"]),
+                args=(
+                    owner,
+                    repo_name,
+                    pr["number"],
+                    pr["head"]["sha"],
+                    installation_id,
+                ),
                 daemon=True,
             ).start()
 
     return jsonify({"status": "ok"})
 
-def _run_review(owner, repo, pr_number, head_sha):
+def _run_review(owner, repo, pr_number, head_sha, installation_id=None):
     try:
-        review_pull_request(owner, repo, pr_number, head_sha)
+        review_pull_request(
+            owner, repo, pr_number, head_sha, installation_id=installation_id
+        )
     except GitHubClientError as exc:
         print(f"Review failed for {owner}/{repo}#{pr_number}: {exc}")

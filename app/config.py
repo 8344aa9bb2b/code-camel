@@ -10,7 +10,13 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 
 # GitHub API token for reading PR files and posting review comments.
+# Only needed if you use a PAT instead of GitHub App installation tokens.
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+# GitHub App credentials for installation-token auth.
+GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
+GITHUB_PRIVATE_KEY = os.getenv("GITHUB_PRIVATE_KEY")  # PEM, or base64-encoded PEM
+GITHUB_PRIVATE_KEY_PATH = os.getenv("GITHUB_PRIVATE_KEY_PATH")  # alternative
 
 # --- Analysis / linter configuration -------------------------------
 LINTER_TIMEOUT = int(os.getenv("LINTER_TIMEOUT", "120"))
