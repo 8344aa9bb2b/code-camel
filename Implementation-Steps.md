@@ -11,10 +11,10 @@ Here’s a **step‑by‑step weekly planner** in checkbox format so you can tra
 ---
 
 ## ✅ Week 3–4: Static Analysis
-- [ ] Integrate linters (ESLint, Pylint, Checkstyle)
-- [ ] Add bug‑pattern detection (SonarQube/custom rules)
-- [ ] Build modular analysis pipeline (language‑agnostic)
-- [ ] Validate findings on sample repositories
+- [x] Integrate linters (ESLint, Pylint, Checkstyle)
+- [x] Add bug‑pattern detection (Bandit, SpotBugs)
+- [x] Build modular analysis pipeline (language‑agnostic)
+- [x] Validate findings on sample repositories
 
 ---
 

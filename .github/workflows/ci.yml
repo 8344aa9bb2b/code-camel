@@ -23,8 +23,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Set up Node (for ESLint)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install ESLint
+        run: npm install -g eslint --no-audit --no-fund
+
+      - name: Download Checkstyle
+        run: python scripts/install_checkstyle.py
+
+      - name: Download SpotBugs
+        run: python scripts/install_spotbugs.py
+
       - name: Run tests
+        env:
+          CHECKSTYLE_JAR: ${{ github.workspace }}/checkstyle.jar
+          SPOTBUGS_JAR: ${{ github.workspace }}/spotbugs-dist/spotbugs-4.10.3/lib/spotbugs.jar
         run: pytest
+
+      - name: Smoke-test analysis pipeline
+        env:
+          CHECKSTYLE_JAR: ${{ github.workspace }}/checkstyle.jar
+          SPOTBUGS_JAR: ${{ github.workspace }}/spotbugs-dist/spotbugs-4.10.3/lib/spotbugs.jar
+        run: python -m app.analysis.cli app --json
 
   deploy:
     needs: build
