@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Dashboard &middot; Code Review Agent{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Dashboard</h1>
+  <p>Welcome back, <strong>{{ user.get('login', '') }}</strong>. Here's what the agent is watching.</p>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Linked repositories</h2>
+    <span class="badge">{{ linked|length }}</span>
+  </div>
+
+  {% if not linked %}
+    <p class="empty">No linked repositories yet. Install the GitHub App on a repository
+      to start receiving automated reviews.</p>
+  {% else %}
+    <div class="repo-grid">
+      {% for repo in linked %}
+        {% set weeks = heatmaps.get(repo.full_name, []) %}
+        <div class="repo-card">
+          <div class="repo-top">
+            <a class="repo-name" href="{{ repo.html_url }}" target="_blank" rel="noopener">
+              {{ repo.full_name }}
+            </a>
+            {% if repo.private %}
+              <span class="tag tag-private">private</span>
+            {% else %}
+              <span class="tag tag-public">public</span>
+            {% endif %}
+          </div>
+
+          <div class="heatmap" title="Commit activity over the last year">
+            {% if weeks %}
+              <div class="heatmap-grid">
+                {% for week in weeks %}
+                  <div class="heatmap-col">
+                    {% for day in week.days %}
+                      <span class="heat-cell level-{{ day.level }}"
+                            title="{{ day.date }}: {{ day.count }} commit(s)"></span>
+                    {% endfor %}
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="heatmap-legend">
+                <span>less</span>
+                <span class="heat-cell level-0"></span>
+                <span class="heat-cell level-1"></span>
+                <span class="heat-cell level-2"></span>
+                <span class="heat-cell level-3"></span>
+                <span class="heat-cell level-4"></span>
+                <span>more</span>
+              </div>
+            {% else %}
+              <p class="empty small">Commit data not available yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Available to link</h2>
+    <span class="badge">{{ unlinked|length }}</span>
+  </div>
+
+  {% if not unlinked %}
+    <p class="empty">Every repository you can access is already linked. Nice!</p>
+  {% else %}
+    <table class="repo-table">
+      <thead>
+        <tr>
+          <th>Repository</th>
+          <th>Visibility</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for repo in unlinked %}
+          <tr>
+            <td><a class="repo-name" href="{{ repo.html_url }}" target="_blank" rel="noopener">{{ repo.full_name }}</a></td>
+            <td>
+              {% if repo.private %}
+                <span class="tag tag-private">private</span>
+              {% else %}
+                <span class="tag tag-public">public</span>
+              {% endif %}
+            </td>
+            <td>
+              <a class="btn btn-ghost btn-sm" href="https://github.com/apps/{{ app_slug }}/installations/new?state={{ repo.owner }}" target="_blank" rel="noopener">Install</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="note">After installing the app on a repository, refresh this page.</p>
+  {% endif %}
+</section>
+{% endblock %}

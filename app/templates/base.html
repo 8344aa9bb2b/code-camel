@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Code Review Agent{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ url_for('main.index') }}">
+        <span class="brand-mark">CR</span>
+        <span class="brand-name">Code Review Agent</span>
+      </a>
+      <nav class="topbar-nav">
+        {% if session.get('user') %}
+          <a class="nav-link" href="{{ url_for('main.index') }}">Dashboard</a>
+          <div class="user-chip">
+            <img class="avatar" src="{{ session['user'].get('avatar_url', '') }}" alt="">
+            <span>{{ session['user'].get('login', '') }}</span>
+          </div>
+          <a class="btn btn-ghost" href="{{ url_for('main.logout') }}">Log out</a>
+        {% else %}
+          <a class="btn btn-ghost" href="{{ url_for('main.login') }}">Log in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    <div class="container">Code Review Agent &middot; PR analysis with linters + AI</div>
+  </footer>
+</body>
+</html>

@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List
 
+from .ai import LLMClientError, RefactorSuggestion, generate_refactor_suggestions
 from .analysis.pipeline import AnalysisReport, _SUPPORTED_EXTENSIONS, analyze_files
 from .analysis.registry import app_registry
 from .github_client import GitHubClient
@@ -33,7 +34,10 @@ def _download_contents(
     return paths
 
 
-def build_summary(report: AnalysisReport) -> str:
+def build_summary(
+    report: AnalysisReport,
+    suggestions: List[RefactorSuggestion] | None = None,
+) -> str:
     """Render an analysis report as a Markdown PR comment."""
     lines = ["## Code Review Agent"]
 
@@ -59,7 +63,37 @@ def build_summary(report: AnalysisReport) -> str:
         lines.append("")
         lines.append(f"*(Linters skipped: {', '.join(sorted(skipped))} — not installed.)*")
 
+    if suggestions:
+        lines.append("")
+        lines.append("## AI Refactor Suggestions")
+        for s in suggestions:
+            loc = f"{s.file}:{s.line}" if s.line is not None else s.file
+            lines.append(f"- **[{s.severity.value}]** {loc}: {s.message}")
+            if s.suggestion:
+                lines.append(f"  - Suggested fix: {s.suggestion}")
+            if s.reason:
+                lines.append(f"  - Why: {s.reason}")
+
     return "\n".join(lines)
+
+
+def _gather_snippets(paths: List[str], report: AnalysisReport, dest: Path) -> Dict[str, str]:
+    """Read source snippets for files that have findings, keyed by repo path."""
+    wanted = {f.file for f in report.findings}
+    snippets: Dict[str, str] = {}
+    for path in paths:
+        rel = str(Path(path).relative_to(dest)).replace("\\", "/")
+        if rel not in wanted:
+            continue
+        try:
+            content = Path(path).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        lines = content.splitlines()
+        if len(lines) > 200:
+            content = "\n".join(lines[:200]) + "\n# ... (truncated)"
+        snippets[rel] = content
+    return snippets
 
 
 def review_pull_request(
@@ -79,7 +113,14 @@ def review_pull_request(
         dest = Path(tmp)
         paths = _download_contents(owner, repo, files, head_sha, dest, client)
         report = analyze_files(paths, registry=app_registry(), cwd=str(dest))
+        snippets = _gather_snippets(paths, report, dest)
 
-    body = build_summary(report)
+    suggestions: List[RefactorSuggestion] = []
+    try:
+        suggestions = generate_refactor_suggestions(report, snippets)
+    except LLMClientError as exc:
+        print(f"AI refactor pass skipped for {owner}/{repo}#{pr_number}: {exc}")
+
+    body = build_summary(report, suggestions)
     client.post_comment(owner, repo, pr_number, body)
     return report

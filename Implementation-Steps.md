@@ -50,6 +50,14 @@ Here’s a **step‑by‑step weekly planner** in checkbox format so you can tra
 
 ---
 
+## ✅ Web Dashboard & Repository Management
+- [ ] Build a proper login page (form-based, handles GitHub OAuth login flow)
+- [ ] Show a list of linked repositories
+- [ ] Show a list of unlinked repositories available to be linked
+- [ ] Build a commit heatmap for linked repositories (per-repo commit activity)
+
+---
+
 ## 🚀 Stretch Goals (Optional)
 - [ ] Add multi‑language support
 - [ ] Implement reinforcement learning from team feedback
