@@ -1,20 +1,32 @@
 from flask import Blueprint, request, jsonify
 import hmac
 import hashlib
+import logging
 import threading
 from . import config
 from .github_client import GitHubClientError
 from .reviewer import review_pull_request
 
 webhook_bp = Blueprint("webhook", __name__)
+logger = logging.getLogger(__name__)
 
 def verify_signature(payload, signature):
+    if not config.WEBHOOK_SECRET or not signature:
+        logger.error("WEBHOOK_SECRET or signature header missing")
+        return False
     mac = hmac.new(config.WEBHOOK_SECRET.encode(), msg=payload, digestmod=hashlib.sha256)
     expected_signature = "sha256=" + mac.hexdigest()
     return hmac.compare_digest(expected_signature, signature)
 
 @webhook_bp.route("/webhook", methods=["POST"])
 def webhook():
+    try:
+        return _handle_webhook()
+    except Exception:
+        logger.exception("Unhandled error in webhook handler")
+        return "Internal error", 500
+
+def _handle_webhook():
     payload = request.data
     signature = request.headers.get("X-Hub-Signature-256")
 
