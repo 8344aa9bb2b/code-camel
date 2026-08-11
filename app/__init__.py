@@ -23,4 +23,7 @@ def create_app():
     from .routes import bp
     app.register_blueprint(bp)
 
+    from .webhook import webhook_bp
+    app.register_blueprint(webhook_bp)
+
     return app

@@ -4,7 +4,7 @@ Here’s a **step‑by‑step weekly planner** in checkbox format so you can tra
 
 ## ✅ Week 1–2: Setup
 - [x] Create basic project skeleton (backend + CI pipeline)
-- [ ] Register GitHub App & configure OAuth
+- [x] Register GitHub App & configure OAuth
 - [ ] Set up webhook listener for PR events
 - [ ] Verify connectivity with GitHub API (test PR event reception)
 
