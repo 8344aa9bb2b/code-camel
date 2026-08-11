@@ -17,6 +17,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
 GITHUB_PRIVATE_KEY = os.getenv("GITHUB_PRIVATE_KEY")  # PEM, or base64-encoded PEM
 GITHUB_PRIVATE_KEY_PATH = os.getenv("GITHUB_PRIVATE_KEY_PATH")  # alternative
+GITHUB_APP_SLUG = os.getenv("GITHUB_APP_SLUG") or "code-review-agent"
 
 # --- Analysis / linter configuration -------------------------------
 LINTER_TIMEOUT = int(os.getenv("LINTER_TIMEOUT", "120"))
