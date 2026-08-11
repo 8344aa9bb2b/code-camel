@@ -26,3 +26,9 @@ ESLINT_CMD = os.getenv("ESLINT_CMD") or None
 CHECKSTYLE_JAR = os.getenv("CHECKSTYLE_JAR") or None
 CHECKSTYLE_CONFIG = os.getenv("CHECKSTYLE_CONFIG") or None
 SPOTBUGS_JAR = os.getenv("SPOTBUGS_JAR") or None
+
+# --- AI / LLM code-smell detection ----------------------------------
+LLM_BASE_URL = os.getenv("LLM_BASE_URL") or "https://api.openai.com/v1"
+LLM_API_KEY = os.getenv("LLM_API_KEY")
+LLM_MODEL = os.getenv("LLM_MODEL") or "gpt-4o-mini"
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "90"))
