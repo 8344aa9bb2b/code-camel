@@ -31,6 +31,12 @@
             <div class="repo-actions">
               <a class="btn btn-ghost btn-sm" href="{{ url_for('ide.ide_page', owner=repo.owner, repo=repo.name) }}">Open IDE</a>
               <details class="pr-menu">
+                <summary class="btn btn-ghost btn-sm">Branches</summary>
+                <div class="branch-menu-list" data-owner="{{ repo.owner }}" data-repo="{{ repo.name }}" data-full="{{ repo.full_name }}">
+                  <span class="pr-loading">Loading…</span>
+                </div>
+              </details>
+              <details class="pr-menu">
                 <summary class="btn btn-ghost btn-sm">PRs</summary>
                 <div class="pr-menu-list" data-owner="{{ repo.owner }}" data-repo="{{ repo.name }}" data-full="{{ repo.full_name }}">
                   <span class="pr-loading">Loading…</span>

@@ -79,12 +79,21 @@ def test_ide_page_renders_for_user(client):
     assert b"monaco" in resp.data
 
 
+def test_ide_page_with_branch_param(client):
+    with client.session_transaction() as sess:
+        sess["user"] = {"login": "dev", "avatar_url": ""}
+    resp = client.get("/ide/acme/web?branch=develop")
+    assert resp.status_code == 200
+    assert b'"develop"' in resp.data
+
+
 def test_ide_pr_page_renders_for_user(client):
     with client.session_transaction() as sess:
         sess["user"] = {"login": "dev", "avatar_url": ""}
     resp = client.get("/ide/acme/web/pr/7")
     assert resp.status_code == 200
     assert b"PR #7" in resp.data
+    assert b"branch: null" in resp.data  # branch is null in PR mode
 
 
 def test_api_requires_auth(client):
@@ -93,6 +102,7 @@ def test_api_requires_auth(client):
         "/api/ide/tree?owner=acme&repo=web",
         "/api/ide/lint?owner=acme&repo=web&path=a.py&sha=main",
         "/api/ide/prs?owner=acme&repo=web",
+        "/api/ide/branches?owner=acme&repo=web",
         "/api/ide/pr-findings?owner=acme&repo=web&pr_number=1",
     ):
         resp = client.get(url)
@@ -110,6 +120,25 @@ def test_api_info_authed(monkeypatch, client):
     resp = client.get("/api/ide/info?owner=acme&repo=web")
     assert resp.status_code == 200
     assert resp.get_json()["default_branch"] == "main"
+
+
+def test_api_branches_authed(monkeypatch, client):
+    import app.ide as ide
+
+    monkeypatch.setattr(
+        ide,
+        "_get_json",
+        lambda url, token, params=None: [
+            {"name": "main"},
+            {"name": "develop"},
+        ],
+    )
+    monkeypatch.setattr(ide, "_git_client", lambda o, r: type("C", (), {"_token": "t"})())
+    with client.session_transaction() as sess:
+        sess["user"] = {"login": "dev", "avatar_url": ""}
+    resp = client.get("/api/ide/branches?owner=acme&repo=web")
+    assert resp.status_code == 200
+    assert resp.get_json()["branches"] == ["main", "develop"]
 
 
 def test_api_pr_findings_authed(monkeypatch, client, tmp_path):

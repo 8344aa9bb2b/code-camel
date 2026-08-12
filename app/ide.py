@@ -187,6 +187,7 @@ def ide_page(owner: str, repo: str):
         repo=repo,
         mode="branch",
         pr_number=None,
+        branch=request.args.get("branch"),
         user=session.get("user"),
     )
 
@@ -201,6 +202,7 @@ def ide_page_pr(owner: str, repo: str, pr_number: int):
         repo=repo,
         mode="pr",
         pr_number=pr_number,
+        branch=None,
         user=session.get("user"),
     )
 
@@ -239,6 +241,24 @@ def api_tree():
         info = _repo_info(owner, repo)
         branch = branch or info["default_branch"]
         return jsonify({"branch": branch, "files": _tree(owner, repo, branch)})
+    except GitHubClientError as exc:
+        return jsonify({"error": str(exc)}), 502
+
+
+@ide_bp.route("/api/ide/branches")
+def api_branches():
+    blocked = _authed()
+    if blocked:
+        return blocked
+    owner, repo = request.args["owner"], request.args["repo"]
+    try:
+        token = _git_client(owner, repo)._token
+        data = _get_json(
+            f"{API_BASE}/repos/{owner}/{repo}/branches",
+            token,
+            params={"per_page": 100},
+        )
+        return jsonify({"branches": [b["name"] for b in data]})
     except GitHubClientError as exc:
         return jsonify({"error": str(exc)}), 502
 

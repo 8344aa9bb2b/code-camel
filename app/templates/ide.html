@@ -52,7 +52,8 @@
     owner: {{ owner|tojson }},
     repo: {{ repo|tojson }},
     mode: {{ mode|tojson }},
-    prNumber: {{ pr_number|tojson }}
+    prNumber: {{ pr_number|tojson }},
+    branch: {{ branch|tojson }}
   };
 </script>
 <script src="{{ url_for('static', filename='js/ide.js') }}"></script>

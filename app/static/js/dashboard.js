@@ -1,14 +1,9 @@
-/* Dashboard: lazy-load open PRs into the per-repo PR menus. */
+/* Dashboard: lazy-load open PRs and branches into the per-repo menus. */
 (function () {
   "use strict";
 
-  function loadPRs(menu) {
-    var owner = menu.dataset.owner;
-    var repo = menu.dataset.repo;
-    var target = menu.querySelector(".pr-menu-list");
-    fetch(
-      "/api/ide/prs?owner=" + encodeURIComponent(owner) + "&repo=" + encodeURIComponent(repo)
-    )
+  function loadMenu(url, target, buildItems) {
+    fetch(url)
       .then(function (resp) {
         if (resp.status === 401) {
           window.location.href = "/login";
@@ -17,17 +12,14 @@
         return resp.json();
       })
       .then(function (data) {
-        if (!data.prs || !data.prs.length) {
-          target.innerHTML = '<span class="pr-none">No open PRs</span>';
+        target.innerHTML = "";
+        var items = buildItems(data);
+        if (!items || !items.length) {
+          target.innerHTML = '<span class="pr-none">Nothing here</span>';
           return;
         }
-        target.innerHTML = "";
-        data.prs.forEach(function (p) {
-          var a = document.createElement("a");
-          a.className = "pr-item";
-          a.href = "/ide/" + owner + "/" + repo + "/pr/" + p.number;
-          a.textContent = "#" + p.number + " " + p.title;
-          target.appendChild(a);
+        items.forEach(function (item) {
+          target.appendChild(item);
         });
       })
       .catch(function () {
@@ -35,14 +27,57 @@
       });
   }
 
+  function loadPRs(menu) {
+    var owner = menu.dataset.owner;
+    var repo = menu.dataset.repo;
+    var target = menu.querySelector(".pr-menu-list");
+    loadMenu(
+      "/api/ide/prs?owner=" + encodeURIComponent(owner) + "&repo=" + encodeURIComponent(repo),
+      target,
+      function (data) {
+        if (!data.prs || !data.prs.length) return [];
+        return data.prs.map(function (p) {
+          var a = document.createElement("a");
+          a.className = "pr-item";
+          a.href = "/ide/" + owner + "/" + repo + "/pr/" + p.number;
+          a.textContent = "#" + p.number + " " + p.title;
+          return a;
+        });
+      }
+    );
+  }
+
+  function loadBranches(menu) {
+    var owner = menu.dataset.owner;
+    var repo = menu.dataset.repo;
+    var target = menu.querySelector(".branch-menu-list");
+    loadMenu(
+      "/api/ide/branches?owner=" + encodeURIComponent(owner) + "&repo=" + encodeURIComponent(repo),
+      target,
+      function (data) {
+        if (!data.branches || !data.branches.length) return [];
+        return data.branches.map(function (b) {
+          var a = document.createElement("a");
+          a.className = "pr-item";
+          a.href = "/ide/" + owner + "/" + repo + "?branch=" + encodeURIComponent(b);
+          a.textContent = b;
+          return a;
+        });
+      }
+    );
+  }
+
   document.addEventListener("click", function (ev) {
     var summary = ev.target.closest(".pr-menu summary");
     if (!summary) return;
     var menu = summary.closest(".pr-menu");
-    var list = menu.querySelector(".pr-menu-list");
+    var branchList = menu.querySelector(".branch-menu-list");
+    var prList = menu.querySelector(".pr-menu-list");
+    var list = branchList || prList;
     if (list && list.dataset.loaded !== "1") {
       list.dataset.loaded = "1";
-      loadPRs(menu);
+      if (branchList) loadBranches(menu);
+      else loadPRs(menu);
     }
   });
 })();
