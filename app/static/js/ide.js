@@ -9,7 +9,7 @@
     (conf.monacoBase || "/static/vendor/monaco") + "/vs";
 
   var state = {
-    branch: null,
+    branch: conf.branch || null,
     files: [],            // [{path, sha, size, lintable, status?}]
     prs: [],
     prHeadSha: null,
@@ -115,7 +115,7 @@
   /* ------------------------------------------------------------ */
   function loadInfo() {
     return apiCall("/api/ide/info" + qs({ owner: owner, repo: repo })).then(function (info) {
-      state.branch = info.default_branch;
+      state.branch = state.branch || info.default_branch;
       return info;
     });
   }
@@ -131,9 +131,27 @@
   /* Populate selects                                              */
   /* ------------------------------------------------------------ */
   function fillBranches() {
-    els.branchSelect.hidden = false;
-    els.branchSelect.innerHTML = "";
-    els.branchSelect.appendChild(new Option("Branch: " + state.branch, state.branch));
+    apiCall("/api/ide/branches" + qs({ owner: owner, repo: repo }))
+      .then(function (data) {
+        var names = data.branches || [];
+        els.branchSelect.hidden = false;
+        els.branchSelect.innerHTML = "";
+        if (!names.length) {
+          els.branchSelect.appendChild(new Option("No branches", ""));
+          return;
+        }
+        names.forEach(function (b) {
+          var opt = new Option(b, b);
+          if (b === state.branch) opt.selected = true;
+          els.branchSelect.appendChild(opt);
+        });
+      })
+      .catch(function (err) {
+        els.branchSelect.hidden = false;
+        els.branchSelect.innerHTML = "";
+        els.branchSelect.appendChild(new Option("Branches unavailable", ""));
+        setStatus(err.message);
+      });
   }
 
   function fillPRs() {
@@ -709,7 +727,9 @@
   /* ------------------------------------------------------------ */
   function setupSelects() {
     els.branchSelect.addEventListener("change", function () {
-      window.location.href = "/ide/" + owner + "/" + repo;
+      var v = els.branchSelect.value;
+      if (!v) return;
+      window.location.href = "/ide/" + owner + "/" + repo + "?branch=" + encodeURIComponent(v);
     });
     els.prSelect.addEventListener("change", function () {
       var v = els.prSelect.value;
