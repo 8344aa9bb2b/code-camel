@@ -83,15 +83,18 @@ def _repo_info(owner: str, repo: str) -> Dict:
     installation_id = resp.json()["id"]
     token = _cached_installation_token(installation_id)
     repo_data = _get_json(f"{API_BASE}/repos/{owner}/{repo}", token)
-    info = {"installation_id": installation_id, "default_branch": repo_data["default_branch"]}
+    info = {
+        "installation_id": installation_id,
+        "default_branch": repo_data["default_branch"],
+        "token": token,
+    }
     _info_cache[key] = (time.time() + 300, info)
     return info
 
 
 def _git_client(owner: str, repo: str) -> GitHubClient:
-    installation_id, _ = _repo_info(owner, repo)
-    token = _cached_installation_token(installation_id)
-    return GitHubClient(token=token)
+    info = _repo_info(owner, repo)
+    return GitHubClient(token=info["token"])
 
 
 def _tree(owner: str, repo: str, branch: str) -> List[Dict]:
