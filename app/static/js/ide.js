@@ -290,7 +290,7 @@
       var model = null;
       // browser-level check avoids refetch when we already have a model
       loadContent(path, file).then(function (content) {
-        model = editor.createModel(content, langForPath(path));
+        model = monaco.editor.createModel(content, langForPath(path));
         state.tabs[path] = { model: model, file: file };
         state.tabOrder.push(path);
         setActive(path);
@@ -816,7 +816,7 @@
           qs({ owner: owner, repo: repo, path: p, ref: ref, blob: file.sha, size: file.size })
       )
         .then(function (data) {
-          var model = editor.createModel(data.content, langForPath(p));
+          var model = monaco.editor.createModel(data.content, langForPath(p));
           state.tabs[p] = { model: model, file: file };
           state.tabOrder.push(p);
           if (file.lintable) lintFile(p);
