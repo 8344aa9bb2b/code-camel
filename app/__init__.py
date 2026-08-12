@@ -26,4 +26,7 @@ def create_app():
     from .webhook import webhook_bp
     app.register_blueprint(webhook_bp)
 
+    from .ide import ide_bp
+    app.register_blueprint(ide_bp)
+
     return app

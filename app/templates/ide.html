@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ owner }}/{{ repo }} · IDE{% endblock %}
+{% block body_class %}ide-page{% endblock %}
+{% block content %}
+<div class="ide-header">
+  <div class="ide-title">
+    <a href="{{ url_for('main.index') }}">Dashboard</a>
+    <span class="ide-sep">/</span>
+    <span class="ide-repo">{{ owner }}/{{ repo }}</span>
+    <span class="ide-mode-chip" id="mode-chip">{{ 'PR #' ~ pr_number if mode == 'pr' else 'Branch' }}</span>
+  </div>
+  <div class="ide-actions">
+    <select id="branch-select" class="ide-select" title="Branch" hidden></select>
+    <select id="pr-select" class="ide-select" title="Pull request" hidden></select>
+    <button id="btn-refactor" class="btn btn-sm" disabled>Refactor</button>
+    <button id="btn-lint" class="btn btn-sm" disabled>Lint</button>
+  </div>
+</div>
+
+<div class="ide-layout">
+  <aside class="ide-tree" id="ide-tree">
+    <div class="ide-tree-head">Explorer</div>
+    <div class="ide-tree-body" id="ide-tree-body"></div>
+  </aside>
+
+  <section class="ide-main">
+    <div class="ide-tabs" id="ide-tabs"></div>
+    <div class="ide-editor" id="editor"></div>
+  </section>
+
+  <aside class="ide-console" id="ide-console">
+    <div class="console-head">
+      <span class="console-title">
+        Problems <span class="badge" id="problem-count">0</span>
+      </span>
+      <div class="console-filters">
+        <button class="chip" data-sev="error" title="Toggle errors">Errors</button>
+        <button class="chip" data-sev="warning" title="Toggle warnings">Warnings</button>
+        <button class="chip" data-sev="suggestion" title="Toggle suggestions">Info</button>
+        <button class="chip chip-clear" id="btn-clear-problems" title="Clear squiggles">Clear</button>
+      </div>
+    </div>
+    <div class="console-body" id="console-body"></div>
+  </aside>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="{{ url_for('static', filename='vendor/monaco/vs/loader.js') }}"></script>
+<script>
+  var IDE_CONF = {
+    owner: {{ owner|tojson }},
+    repo: {{ repo|tojson }},
+    mode: {{ mode|tojson }},
+    prNumber: {{ pr_number|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/ide.js') }}"></script>
+{% endblock %}
