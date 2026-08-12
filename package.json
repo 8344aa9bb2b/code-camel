@@ -1,0 +1,11 @@
+{
+  "name": "code-review-agent",
+  "private": true,
+  "description": "Vendor monaco-editor into app/static/vendor/monaco",
+  "scripts": {
+    "vendor:monaco": "node scripts/vendor_monaco.mjs"
+  },
+  "devDependencies": {
+    "monaco-editor": "0.52.2"
+  }
+}

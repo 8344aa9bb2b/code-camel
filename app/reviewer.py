@@ -8,6 +8,7 @@ from .ai import LLMClientError, RefactorSuggestion, generate_refactor_suggestion
 from .analysis.pipeline import AnalysisReport, _SUPPORTED_EXTENSIONS, analyze_files
 from .analysis.registry import app_registry
 from .github_client import GitHubClient
+from . import store
 
 
 def _changed_files(files: List[Dict]) -> List[Dict]:
@@ -96,16 +97,14 @@ def _gather_snippets(paths: List[str], report: AnalysisReport, dest: Path) -> Di
     return snippets
 
 
-def review_pull_request(
+def analyze_pr_changes(
     owner: str,
     repo: str,
     pr_number: int,
     head_sha: str,
-    client: GitHubClient | None = None,
-    installation_id: int | str | None = None,
-) -> AnalysisReport:
-    """Analyze a PR's changed files and post a summary comment."""
-    client = client or GitHubClient(installation_id=installation_id)
+    client: GitHubClient,
+) -> tuple[AnalysisReport, List[RefactorSuggestion]]:
+    """Run the linter + AI passes over a PR's changed files, no side effects."""
     files = _changed_files(client.list_pr_files(owner, repo, pr_number))
     files = _supported_files(files)
 
@@ -121,6 +120,24 @@ def review_pull_request(
     except LLMClientError as exc:
         print(f"AI refactor pass skipped for {owner}/{repo}#{pr_number}: {exc}")
 
+    return report, suggestions
+
+
+def review_pull_request(
+    owner: str,
+    repo: str,
+    pr_number: int,
+    head_sha: str,
+    client: GitHubClient | None = None,
+    installation_id: int | str | None = None,
+) -> AnalysisReport:
+    """Analyze a PR's changed files, post a summary comment, and store findings."""
+    client = client or GitHubClient(installation_id=installation_id)
+    report, suggestions = analyze_pr_changes(
+        owner, repo, pr_number, head_sha, client=client
+    )
+
     body = build_summary(report, suggestions)
     client.post_comment(owner, repo, pr_number, body)
+    store.save_pr_review(f"{owner}/{repo}", pr_number, head_sha, report, suggestions)
     return report

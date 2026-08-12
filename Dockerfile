@@ -15,4 +15,5 @@ COPY scripts/ scripts/
 RUN python scripts/install_checkstyle.py && python scripts/install_spotbugs.py
 
 COPY . .
+RUN npm ci --no-audit --no-fund && npm run vendor:monaco
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "run:app"]
